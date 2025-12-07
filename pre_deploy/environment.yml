@@ -1,0 +1,17 @@
+name: indexer
+channels:
+  - conda-forge
+  - defaults
+
+dependencies:
+  - python=3.11
+  - pip
+  - numpy
+  - pandas
+  - python-dotenv
+
+  - pip:
+      - torch==2.3.0
+      - sentence-transformers==2.6.1
+      - opensearch-py==2.4.2
+      - tqdm

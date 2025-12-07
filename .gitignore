@@ -1,0 +1,33 @@
+# LOG FILES
+*.log
+*.log.*
+logs/
+backend/logs/
+frontend/logs/
+
+# PYTHON CACHE
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# EDITOR FILES
+.vscode/
+.idea/
+
+# BUILD OR GENERATED FILES
+dist/
+build/
+
+# DATABASES
+*.sqlite
+*.db
+
+# OS FILES
+.DS_Store
+Thumbs.db
+
+# OTHER STAGING/ARTIFACTS
+*.tmp
+*.cache
+
