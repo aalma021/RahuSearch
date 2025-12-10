@@ -60,39 +60,15 @@ export default function SearchBar({
   return (
     <div className="search-card fade-in">
 
-      {/* IMAGE PREVIEW — SAME */}
       {imageFile && (
-        <div style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "12px",
-          background: "#f4f5f7",
-          borderRadius: "10px",
-          padding: "10px",
-          border: "1px solid #ddd",
-          marginBottom: "10px"
-        }}>
+        <div className="image-preview-box">
           <img
             src={URL.createObjectURL(imageFile)}
             alt="preview"
-            style={{
-              width: "55px",
-              height: "55px",
-              borderRadius: "8px",
-              objectFit: "cover",
-              border: "1px solid #aaa"
-            }}
+            className="image-preview-thumb"
           />
           <button
-            style={{
-              background: "#ff5555",
-              border: "none",
-              padding: "6px 12px",
-              color: "white",
-              borderRadius: "6px",
-              cursor: "pointer",
-              fontSize: "13px"
-            }}
+            className="remove-image-btn"
             onClick={() => setImageFile(null)}
           >
             Remove
@@ -100,7 +76,7 @@ export default function SearchBar({
         </div>
       )}
 
-      {/* SEARCH */}
+      {/* SEARCH BAR */}
       <div className="search-top">
         <input
           placeholder="Search..."
@@ -117,34 +93,24 @@ export default function SearchBar({
           />
         </label>
 
-        <button className="search-btn" onClick={onSearch}>
-          Search
-        </button>
+        <button className="search-btn" onClick={onSearch}>Search</button>
       </div>
 
-      {/* ADVANCED BUTTON */}
+      {/* ADVANCED BUTTON - NEW STYLE */}
       <button
         onClick={() => setOpen(!open)}
+        className="advanced-filters-btn"
         style={{
-          padding: "6px 12px",
-          borderRadius: "8px",
-          marginTop: "12px",
-          border: "1px solid #aaa",
-          background: open ? "#eee" : "#222",
-          color: open ? "#000" : "#fff",
-          cursor: "pointer",
-          fontWeight: "bold",
-          fontSize: "13px"
+          background: open ? "#e55d2e" : "#FC6736"
         }}
       >
         {open ? "Hide Filters" : "Advanced Filters"}
       </button>
 
-      {/* ADVANCED SECTION */}
       {open && (
         <div className="params-bar">
 
-          {/* STORE INPUT ADDED HERE */}
+          {/* Store Filter */}
           <div className="param-group">
             <span>Store</span>
             <input
@@ -182,12 +148,11 @@ export default function SearchBar({
               disabled={mode === "keyword" || mode === "vector"}
               onChange={(e) => setAlpha(e.target.value)}
               onBlur={(e) => normalizeAlpha(e.target.value)}
-              style={ mode==="keyword" || mode==="vector" ? { opacity: 0.4, cursor:"not-allowed" } : {} }
+              style={mode==="keyword" || mode==="vector" ? { opacity: 0.4, cursor:"not-allowed" } : {}}
             />
           </div>
 
           <div className="param-group" style={{ display:"flex", alignItems:"center", gap:"14px" }}>
-
             <div style={{ display:"flex", flexDirection:"column", alignItems:"center" }}>
               <span style={{ fontSize:"13px", marginBottom:"4px", fontWeight:"600" }}>Reranker</span>
               <label className="switch">
@@ -210,15 +175,13 @@ export default function SearchBar({
                 disabled={!reranker}
                 onChange={(e) => setRerankerScore(e.target.value)}
                 onBlur={(e) => normalizeScore(e.target.value)}
-                style={!reranker ? { opacity: 0.4, cursor:"not-allowed" } : {}}
+                style={!reranker ? { opacity:0.4, cursor:"not-allowed" } : {}}
               />
             </div>
-
           </div>
 
         </div>
       )}
-
     </div>
   );
 }

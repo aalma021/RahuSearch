@@ -65,12 +65,17 @@ export default function Home() {
 
   return (
     <div className="page-root">
-      <div className="hero-wrapper fade-in">
-        <div className="hero-card">
-          <h1 className="hero-title" style={{ fontSize: "45px" }}>
-            بحث دلالي
-          </h1>
-        </div>
+    <div className="hero-wrapper fade-in">
+      <div className="hero-card">
+        <h1 className="hero-title">بحث دلالي</h1>
+
+        <p className="hero-desc">
+          منصة بحث ذكية تعتمد على الذكاء الاصطناعي لتوفير نتائج أكثر دقة وسياقاً
+        </p>
+
+        <div className="hero-sub-divider" />
+      </div>
+
       </div>
 
       <SearchBar

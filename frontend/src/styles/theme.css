@@ -13,38 +13,64 @@
 *********************************/
 .hero-wrapper {
   width: 100%;
-  background: linear-gradient(to bottom right, #1d1e22, #0c0d11);
-  padding: 95px 0 110px;
-  margin-bottom: 55px;
+  height: 240px;
+  position: relative;
+  margin-bottom: 40px;
+  margin-top: 65px;  /* 👈 Üst boşluk */
+
+  /* Background image */
+  background-image: url("../../public/hero_background.jpg");
+  background-size: cover;
+  background-position: center center;
+  background-repeat: no-repeat;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  border-bottom: 1px solid rgba(200,200,200,0.12);
 }
 
-/* İçerik hizalama */
+/* Blur + dark overlay */
+.hero-wrapper::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,0.68);
+  backdrop-filter: blur(7px);
+}
+
 .hero-card {
-  max-width: 1150px;
+  max-width: 850px;
   margin: auto;
   text-align: center;
+  position: relative;
+  z-index: 2; /* overlay üstüne çık */
 }
 
 .hero-title {
-  font-size: 54px;
-  color: #FC6736;
+  font-size: 42px;
+  color: #FC6736 !important;
   font-family: "AmmanV Serif Bold Regular";
   font-weight: 400;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
+  letter-spacing: -0.5px;
 }
 
-.hero-sub {
-  font-size: 22px;
-  color: rgba(255,255,255,0.85);
-  font-family: "AmmanV Serif Bold Regular";
+.hero-desc {
+  font-size: 18px;
+  color: rgba(252, 103, 54, 0.7);
+  font-weight: 400;
+  margin-bottom: 24px;
+  line-height: 1.5;
 }
 
-.hero-divider {
-  width: 124px;
-  height: 3px;
-  margin: 30px auto 0;
-  background: rgba(255,255,255,0.38);
-  border-radius: 4px;
+.hero-sub-divider {
+  width: 100px;
+  height: 2px;
+  margin: 0 auto;
+  background: rgba(252, 103, 54, 0.6);
+  border-radius: 2px;
 }
 
 
@@ -57,7 +83,7 @@
   padding: 40px 38px;
   border-radius: 20px;
 
-  background: linear-gradient(to bottom right, #1a1b1e, #111216);
+  background: linear-gradient(to bottom right, #0e1218, #0b0f14);
   box-shadow: 0 14px 48px rgba(0,0,0,0.25);
   border: 1px solid rgba(255,255,255,0.08);
 }
@@ -140,7 +166,6 @@
   border: none;
   cursor: pointer;
   font-size: 14px;
-
   background: rgba(255,255,255,0.22);
   color: white;
 }
@@ -275,6 +300,7 @@
   color: #000;
 }
 
+
 .image-preview-box {
   margin-bottom: 20px;
   padding: 14px;
@@ -308,4 +334,23 @@
 
 .remove-image-btn:hover {
   background: #d73333;
+}
+
+
+.advanced-filters-btn {
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-top: 16px;
+  border: none;
+  color: white;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: 0.25s;
+  width: fit-content;
+}
+
+.advanced-filters-btn:hover {
+  box-shadow: 0 6px 18px rgba(252, 103, 54, 0.55);
+  transform: translateY(-1px);
 }
