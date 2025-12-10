@@ -29,7 +29,6 @@ export default function ProductCard({ item }) {
             <button style={{ ...styles.navBtn, right: "10px" }} onClick={next}>❯</button>
           )}
 
-          {/* Dot indicators */}
           <div style={styles.indicators}>
             {images.map((_, i) => (
               <span
@@ -64,6 +63,7 @@ export default function ProductCard({ item }) {
 const styles = {
   /** OUTER DARK PANEL BOX */
   outerBox: {
+    margin: "12px", // *** EKLENDİ ***
     padding: "12px",
     borderRadius: "24px",
     width: "100%",
@@ -129,7 +129,7 @@ const styles = {
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
-    gap: "6px",
+    gap: "26px",
   },
 
   dot: {
@@ -173,3 +173,4 @@ const styles = {
     fontWeight: "bold",
   },
 };
+

@@ -15,7 +15,7 @@ class SearchProcessor:
     # --------------------------------------------------
     # KEYWORD
     # --------------------------------------------------
-    def keyword(self, query, k):
+    def keyword(self, query, k, store=None):
         logger.info(f"[SearchProcessor] Keyword search → k={k}")
 
         body = {
@@ -23,18 +23,25 @@ class SearchProcessor:
             "query": {"match": {"combined_text": query}}
         }
 
+        if store:
+            body["query"] = {
+                "bool": {
+                    "must": body["query"],
+                    "filter": {"term": {"store": store.lower()}}
+                }
+            }
+
         start = time.perf_counter()
         res = self.client.search(index=self.index, body=body)
         elapsed = time.perf_counter() - start
 
         logger.info(f"[SearchProcessor] Keyword duration: {elapsed:.4f} sec")
-
         return res["hits"]["hits"]
 
     # --------------------------------------------------
-    # VECTOR SEARCH (pure embedding)
+    # VECTOR SEARCH
     # --------------------------------------------------
-    def vector(self, query, k):
+    def vector(self, query, k, store=None):
         logger.info(f"[SearchProcessor] Vector search → k={k}")
 
         emb = self.embed_proc.model.encode(
@@ -54,19 +61,26 @@ class SearchProcessor:
             }
         }
 
+        if store:
+            body["query"] = {
+                "bool": {
+                    "must": body["query"],
+                    "filter": {"term": {"store": store.lower()}}
+                }
+            }
+
         start = time.perf_counter()
         res = self.client.search(index=self.index, body=body)
         elapsed = time.perf_counter() - start
 
         logger.info(f"[SearchProcessor] Vector duration: {elapsed:.4f} sec")
-
         return res["hits"]["hits"]
 
     # --------------------------------------------------
-    # HYBRID SEARCH (BM25 + KNN)
+    # HYBRID (RAW)
     # --------------------------------------------------
-    def hybrid(self, query, k, alpha):
-        logger.info(f"[SearchProcessor] Hybrid search → k={k}, alpha={alpha}")
+    def get_hybrid_raw(self, query, k, alpha, store=None):
+        logger.info(f"[SearchProcessor] Hybrid(raw) → k={k}, alpha={alpha}, store={store}")
 
         emb = self.embed_proc.model.encode(
             "query: " + query,
@@ -75,36 +89,64 @@ class SearchProcessor:
 
         pipeline = f"hybrid-a{alpha}"
         self._update_pipeline(alpha, pipeline)
-
         params = {"search_pipeline": pipeline}
 
-        # native hybrid query
-        body = {
-            "size": k,
-            "query": {
-                "hybrid": {
-                    "queries": [
-                        {"match": {"combined_text": query}},
-                        {
-                            "knn": {
-                                "embedding": {
-                                    "vector": emb.tolist(),
-                                    "k": k
-                                }
+        query_body = {
+            "hybrid": {
+                "queries": [
+                    {"match": {"combined_text": query}},
+                    {
+                        "knn": {
+                            "embedding": {
+                                "vector": emb.tolist(),
+                                "k": k
                             }
                         }
-                    ]
-                }
+                    }
+                ]
             }
         }
+
+        body = {
+            "size": k,
+            "query": query_body
+        }
+
+        # post_filter applies AFTER scoring & ranking
+        if store:
+            body["post_filter"] = {
+                "term": {"store": store.lower()}
+            }
 
         start = time.perf_counter()
         res = self.client.search(index=self.index, body=body, params=params)
         elapsed = time.perf_counter() - start
 
-        logger.info(f"[SearchProcessor] Hybrid search duration: {elapsed:.4f} sec")
-
+        logger.info(f"[SearchProcessor] Hybrid(raw) duration: {elapsed:.4f} sec")
         return res["hits"]["hits"]
+
+    # --------------------------------------------------
+    # HYBRID FILTERED + RESTRICTED (TRUE USER EXPECTATION)
+    # --------------------------------------------------
+    def hybrid(self, query, k, alpha, store=None):
+        logger.info(
+            f"[SearchProcessor] Hybrid(filtered) → k={k}, alpha={alpha}, store={store}"
+        )
+
+        # Expand pool — ensure we find enough store-matching products
+        expanded_k = max(k * 4, 200)
+        raw_hits = self.get_hybrid_raw(query, expanded_k, alpha)
+
+        if store:
+            filtered = [
+                x for x in raw_hits
+                if x["_source"]["store"].lower() == store.lower()
+            ]
+        else:
+            filtered = raw_hits
+
+        # Final slice (top-K)
+        return filtered[:k]
 
     # --------------------------------------------------
     # CREATE/UPDATE HYBRID PIPELINE

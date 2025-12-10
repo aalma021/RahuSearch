@@ -1,38 +1,31 @@
 # ------------------------------------------
-# BASE IMAGE (CUDA + Ubuntu 22.04)
+# BASE IMAGE (CPU ONLY)
 # ------------------------------------------
-FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
+FROM python:3.11-slim
 
-ARG DEBIAN_FRONTEND=noninteractive
-
-# ------------------------------------------
-# Install Python 3.11 (same as conda env)
-# ------------------------------------------
-RUN apt-get update && apt-get install -y \
-    software-properties-common && \
-    add-apt-repository ppa:deadsnakes/ppa -y && \
-    apt-get update && apt-get install -y \
-    python3.11 python3.11-distutils python3.11-dev curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# python3.11'ı default python3 yapalım
-RUN ln -sf /usr/bin/python3.11 /usr/bin/python3
-RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
-
-# ------------------------------------------
-# WORKDIR
-# ------------------------------------------
 WORKDIR /app
 
 # ------------------------------------------
-# Install Python dependencies
+# System deps (minimal)
+# ------------------------------------------
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    ca-certificates \
+ && rm -rf /var/lib/apt/lists/*
+
+# ------------------------------------------
+# Requirements
 # ------------------------------------------
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
-# GPU'lu torch yükle (CUDA 12.1)
-RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+# ------------------------------------------
+# Do NOT install GPU packages
+# Torch CPU'su yeter
+# ------------------------------------------
+RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
 
 # ------------------------------------------
 # Copy project
@@ -40,6 +33,7 @@ RUN pip install torch torchvision --index-url https://download.pytorch.org/whl/c
 COPY . .
 
 # ------------------------------------------
-# Start API
+# Start FastAPI
 # ------------------------------------------
-CMD ["uvicorn", "app.api.api:app", "--host", "0.0.0.0", "--port", "8000"]
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

@@ -30,7 +30,8 @@ class SearchPipeline:
         k=25,
         alpha=0.5,
         reranker=True,
-        reranker_threshold=0.0
+        reranker_threshold=0.0,
+        store=None
     ):
         clean = self.text_proc.process(text) if text else ""
         img_txt = self.image_proc.process(image_bytes) if image_bytes else ""
@@ -39,19 +40,22 @@ class SearchPipeline:
 
         if not query:
             return {"error": "Empty query"}
-        logger.warning(f"[DEBUG] mode={mode}, k={k}, alpha={alpha}, reranker={reranker}, threshold={reranker_threshold}, query={query}")
+        logger.warning(
+            f"[DEBUG] mode={mode}, k={k}, alpha={alpha}, reranker={reranker}, "
+            f"threshold={reranker_threshold}, query={query}, store={store}"
+        )
 
         # ------------------------------------------------
         # RETRIEVAL MODES
         # ------------------------------------------------
         if mode == "keyword":
-            hits = self.searcher.keyword(query, k)
+            hits = self.searcher.keyword(query, k, store)
 
         elif mode == "vector":
-            hits = self.searcher.vector(query, k)
+            hits = self.searcher.vector(query, k, store)
 
         elif mode == "hybrid":
-            hits = self.searcher.hybrid(query, k, alpha)
+            hits = self.searcher.hybrid(query, k, alpha, store)
 
         else:
             return {"error": f"Invalid mode={mode}"}
@@ -96,6 +100,8 @@ class SearchPipeline:
                     src.get("store"),
                     src.get("image_paths")
                 ),
+
+                "store": src.get("store"),  # eklenmesi mantıklı
 
                 "score": float(h.get("_score", 0.0)),
                 "rerank_score": float(h.get("rerank_score", 0.0))

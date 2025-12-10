@@ -15,7 +15,9 @@ async def search(
     k: int = Form(25),
     alpha: float = Form(0.5),
     reranker: bool = Form(True),
-    reranker_score: float = Form(0.0)
+    reranker_score: float = Form(0.0),
+
+    store: Optional[str] = Form(None),  # <<< EKLENDİ
 ):
     """
     Semantic Search API
@@ -35,13 +37,8 @@ async def search(
         Run cross-encoder reranker or not
     reranker_score : float
         Minimum threshold output of reranker
-
-    Returns:
-    ----------
-    {
-        "query": "...",
-        "results": [...]
-    }
+    store : str
+        Store filtering ("jarir", "noon", "almanea")
     """
     img_bytes = await image.read() if image else None
 
@@ -52,5 +49,6 @@ async def search(
         k=k,
         alpha=alpha,
         reranker=reranker,
-        reranker_threshold=reranker_score
+        reranker_threshold=reranker_score,
+        store=store
     )

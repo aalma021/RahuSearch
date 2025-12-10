@@ -8,7 +8,8 @@ export const searchApi = async ({
   k,
   alpha,
   reranker,
-  rerankerScore
+  rerankerScore,
+  store
 }) => {
   const formData = new FormData();
 
@@ -19,7 +20,9 @@ export const searchApi = async ({
   formData.append("k", String(k));               
   formData.append("alpha", String(alpha));       
   formData.append("reranker", String(reranker)); 
-  formData.append("reranker_score", String(rerankerScore)); // <-- FIX HERE
+  formData.append("reranker_score", String(rerankerScore));
+
+  if (store) formData.append("store", store);
 
   const res = await axios.post(API_URL, formData, {
     headers: { "Content-Type": "multipart/form-data" }

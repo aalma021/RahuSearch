@@ -13,11 +13,13 @@ export default function Home() {
   const [min, setMin] = useState("");
   const [max, setMax] = useState("");
 
-  const [mode, setMode] = useState("hybrid");
+  const [mode, setMode] = useState("keyword");
   const [k, setK] = useState(40);
   const [alpha, setAlpha] = useState(0.5);
   const [reranker, setReranker] = useState(true);
   const [rerankerScore, setRerankerScore] = useState(0.0);
+
+  const [store, setStore] = useState("");
 
   const [page, setPage] = useState(1);
   const pageSize = 12;
@@ -33,6 +35,7 @@ export default function Home() {
       alpha,
       reranker,
       rerankerScore,
+      store
     });
 
     setResults(data.results || []);
@@ -40,14 +43,10 @@ export default function Home() {
     setPage(1);
   };
 
-  // ------ PRICE FILTER ------
   const filteredResults = results.filter((r) => {
     const val = r.price || 0;
-
-    // input boşsa filtre uygulama
     const minOk = !min || val >= parseFloat(min);
     const maxOk = !max || val <= parseFloat(max);
-
     return minOk && maxOk;
   });
 
@@ -66,18 +65,14 @@ export default function Home() {
 
   return (
     <div className="page-root">
-      {/* HERO */}
       <div className="hero-wrapper fade-in">
         <div className="hero-card">
-          <h1 className="hero-title">
-            Semantik Search Demo
+          <h1 className="hero-title" style={{ fontSize: "45px" }}>
+            بحث دلالي
           </h1>
-          <p className="hero-sub">حلول تقنية متقدمة | تدريب | استشارات</p>
-          <div className="hero-divider"></div>
         </div>
       </div>
 
-      {/* SEARCH BAR */}
       <SearchBar
         text={text}
         setText={setText}
@@ -95,33 +90,23 @@ export default function Home() {
         setRerankerScore={setRerankerScore}
         imageFile={imageFile}
         setImageFile={setImageFile}
+        min={min}
+        max={max}
+        setMin={setMin}
+        setMax={setMax}
+        store={store}
+        setStore={setStore}
       />
 
-      {/* RESULTS + FILTERS */}
       {shouldShowResults && (
         <div className="results-container fade-in">
-          {/* PRICE FILTERS */}
-          <div className="filter-bar">
-            <input
-              placeholder="Min Price"
-              value={min}
-              onChange={(e) => setMin(e.target.value)}
-            />
 
-            <input
-              placeholder="Max Price"
-              value={max}
-              onChange={(e) => setMax(e.target.value)}
-            />
-          </div>
-
-          {/* RESULTS GRID */}
           <div className="results-grid">
             {loading ? (
               <Loading />
             ) : filteredResults.length === 0 ? (
               <div style={{ gridColumn: "1 / -1", textAlign: "center", padding: "20px 0" }}>
-                No products match the selected price range.
+                No products found.
               </div>
             ) : (
               paginatedResults.map((item) => (
@@ -130,14 +115,9 @@ export default function Home() {
             )}
           </div>
 
-          {/* PAGINATION (sadece sonuç varsa mantıklı) */}
           {!loading && filteredResults.length > 0 && (
             <div className="pagination">
-              <button
-                className="pg-btn"
-                disabled={page === 1}
-                onClick={() => setPage(page - 1)}
-              >
+              <button className="pg-btn" disabled={page === 1} onClick={() => setPage(page - 1)}>
                 Prev
               </button>
 
@@ -145,11 +125,7 @@ export default function Home() {
                 Page {page} / {totalPages}
               </span>
 
-              <button
-                className="pg-btn"
-                disabled={page === totalPages}
-                onClick={() => setPage(page + 1)}
-              >
+              <button className="pg-btn" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
                 Next
               </button>
             </div>
