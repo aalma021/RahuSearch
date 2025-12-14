@@ -96,18 +96,32 @@ wait_backend:
 	echo ">>> ERROR: Backend did not become healthy"; \
 	echo ">>> Check backend.log"; exit 1; \
 	'
-
 # ------------------------------------------
-# FRONTEND (LAST STEP)
+# FRONTEND (NODE VERSION SAFE)
 # ------------------------------------------
 frontend:
-	@echo ">>> Starting Frontend (npm start)..."
+	@echo ">>> Starting Frontend with Node version check..."
+
 	@bash -c '\
 		cd ../frontend && \
+		if [ ! -f .nvmrc ]; then \
+			echo "❌ .nvmrc not found in frontend/"; exit 1; \
+		fi && \
+		if [ ! -s $$HOME/.nvm/nvm.sh ]; then \
+			echo "❌ nvm not found. Install nvm first."; exit 1; \
+		fi && \
+		source $$HOME/.nvm/nvm.sh && \
+		nvm use && \
+		NODE_MAJOR=$$(node -v | sed "s/v//" | cut -d. -f1) && \
+		if [ $$NODE_MAJOR -ne 18 ]; then \
+			echo "❌ Unsupported Node version: $$(node -v). Required: 18.x"; \
+			exit 1; \
+		fi && \
 		npm install && \
 		nohup npm start > $(CUR_PATH)/frontend.log 2>&1 & \
 		echo $$! > $(CUR_PATH)/frontend.pid \
 	'
+
 	@echo ">>> Frontend started ✓"
 
 # ------------------------------------------
