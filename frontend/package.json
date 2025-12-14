@@ -17,7 +17,9 @@
   "devDependencies": {
     "vite": "^7.2.4",
     "@vitejs/plugin-react": "^5.0.0",
-    "typescript": "~5.9.3"
+    "typescript": "~5.9.3",
+    "tinyglobby": "0.2.10"
+
   },
   "engines": {
     "node": ">=24"
