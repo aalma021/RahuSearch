@@ -118,6 +118,13 @@ frontend:
 			echo "❌ Unsupported Node version: $$(node -v). Required: >=24"; \
 			exit 1; \
 		fi && \
+		if [ ! -f package-lock.json ]; then \
+			echo "⚠️ package-lock.json not found → cleaning node_modules & npm cache"; \
+			rm -rf node_modules && \
+			npm cache clean --force; \
+		else \
+			echo "✔ package-lock.json found → preserving node_modules resolution"; \
+		fi && \
 		npm install && \
 		nohup npm run dev > $(CUR_PATH)/frontend.log 2>&1 & \
 		echo $$! > $(CUR_PATH)/frontend.pid \

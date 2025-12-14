@@ -39,6 +39,8 @@ node_modules/
 # build outputs
 build/
 dist/
+frontend/package-lock.json
+package-lock.json
 
 # logs
 *.log
@@ -55,3 +57,9 @@ pnpm-debug.log*
 .DS_Store
 .vscode/
 .idea/
+
+# Runtime PID files
+*.pid
+
+# Logs
+*.log
