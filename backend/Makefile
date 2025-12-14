@@ -1,47 +1,46 @@
 # ------------------------------------------
-# MAKEFILE (PID-BASED CLEAN MANAGEMENT)
+# MAKEFILE (STRICT ORDER + HEALTH CHECK)
 # ------------------------------------------
 
 ENV_NAME := $(shell grep "^name:" environment.yml | sed 's/name: //')
 CUR_PATH := $(CURDIR)
 
-.PHONY: all env up frontend api logs stop reset stop_background_services
+.PHONY: all env up api wait_backend frontend logs stop reset stop_background_services
 
 # ------------------------------------------
 # DEFAULT FLOW
 # ------------------------------------------
-all: stop_background_services env up frontend api logs
+all: stop_background_services env up api wait_backend frontend
 
 # ------------------------------------------
-# KILL OLD SERVICES USING PID FILES
+# KILL OLD SERVICES
 # ------------------------------------------
 stop_background_services:
 	@echo ">>> Cleaning previously running services..."
 
-	@echo ">>> Killing frontend..."
+	@echo ">>> Killing frontend (port 3000)..."
 	@FRPID=$$(lsof -ti :3000); \
-	if [ ! -z "$$FRPID" ]; then \
+	if [ -n "$$FRPID" ]; then \
 		kill -9 $$FRPID || true; \
 		echo "Frontend killed: $$FRPID"; \
 	else \
-		echo "No frontend found."; \
+		echo "No frontend running."; \
 	fi
 
-	@echo ">>> Killing backend..."
+	@echo ">>> Killing backend (port 8000)..."
 	@BEPID=$$(lsof -ti :8000); \
-	if [ ! -z "$$BEPID" ]; then \
+	if [ -n "$$BEPID" ]; then \
 		kill -9 $$BEPID || true; \
 		echo "Backend killed: $$BEPID"; \
 	else \
-		echo "No backend found."; \
+		echo "No backend running."; \
 	fi
 
-	rm -f $(CUR_PATH)/frontend.pid $(CUR_PATH)/backend.pid backend.log frontend.log
-
-	@echo "✔ Previous services fully terminated ✓"
+	rm -f backend.pid frontend.pid backend.log frontend.log
+	@echo "✔ Old services cleaned ✓"
 
 # ------------------------------------------
-# CREATE ENVIRONMENT IF NOT EXISTS
+# CONDA ENV
 # ------------------------------------------
 env:
 	@echo ">>> Checking Conda environment: $(ENV_NAME)"
@@ -53,72 +52,84 @@ env:
 	fi
 
 # ------------------------------------------
-# START OPENSEARCH
+# OPENSEARCH
 # ------------------------------------------
 up:
 	@echo ">>> Starting OpenSearch..."
 	docker compose up -d opensearch
 
-	@echo ">>> Waiting until OpenSearch is ready..."
-	@sleep 3
+	@echo ">>> Waiting for OpenSearch to be ready..."
 	@bash -c '\
-	for i in {1..150}; do \
+	for i in {1..60}; do \
 		if curl -s http://localhost:9200 >/dev/null; then \
-			echo ">>> OpenSearch is ready!"; exit 0; \
+			echo ">>> OpenSearch is ready ✓"; exit 0; \
 		fi; \
-		echo "Waiting for OpenSearch... ($$i/150)"; \
+		echo "Waiting for OpenSearch... ($$i/60)"; \
 		sleep 2; \
 	done; \
-	echo ">>> ERROR: OpenSearch did not start!"; exit 1; \
+	echo ">>> ERROR: OpenSearch did not start"; exit 1; \
 	'
 
 # ------------------------------------------
-# FRONTEND (BACKGROUND + PID SAVE)
+# BACKEND
+# ------------------------------------------
+api:
+	@echo ">>> Starting Backend API..."
+	@nohup conda run -n $(ENV_NAME) python -u -m app.main \
+		> backend.log 2>&1 & \
+	echo $$! > backend.pid
+	@echo ">>> Backend process started"
+
+# ------------------------------------------
+# WAIT UNTIL BACKEND IS REALLY UP
+# ------------------------------------------
+wait_backend:
+	@echo ">>> Waiting for Backend health check..."
+	@bash -c '\
+	for i in {1..60}; do \
+		if curl -s http://localhost:8000/health >/dev/null; then \
+			echo ">>> Backend is healthy ✓"; exit 0; \
+		fi; \
+		echo "Waiting for Backend... ($$i/60)"; \
+		sleep 2; \
+	done; \
+	echo ">>> ERROR: Backend did not become healthy"; \
+	echo ">>> Check backend.log"; exit 1; \
+	'
+
+# ------------------------------------------
+# FRONTEND (LAST STEP)
 # ------------------------------------------
 frontend:
-	@echo ">>> Launching Frontend React App in background..."
+	@echo ">>> Starting Frontend (npm start)..."
 	@bash -c '\
 		cd ../frontend && \
 		npm install && \
 		nohup npm start > $(CUR_PATH)/frontend.log 2>&1 & \
 		echo $$! > $(CUR_PATH)/frontend.pid \
 	'
-	@sleep 3
 	@echo ">>> Frontend started ✓"
 
 # ------------------------------------------
-# BACKEND (BACKGROUND + PID SAVE)
-# ------------------------------------------
-api:
-	@echo ">>> Starting Backend API in background..."
-	@bash -c '\
-		source activate $(ENV_NAME) && \
-		nohup python -m app.main > $(CUR_PATH)/backend.log 2>&1 & \
-		echo $$! > $(CUR_PATH)/backend.pid \
-	'
-	@sleep 2
-	@echo ">>> Backend started ✓"
-
-# ------------------------------------------
-# LOG STREAM
+# LOGS
 # ------------------------------------------
 logs:
 	@echo ">>> Streaming backend logs..."
-	@tail -f $(CUR_PATH)/backend.log
+	@tail -f backend.log
 
 # ------------------------------------------
-# STOP EVERYTHING (e.g. docker)
+# STOP EVERYTHING
 # ------------------------------------------
 stop:
-	@echo ">>> Stopping docker services…"
+	@echo ">>> Stopping docker services..."
 	docker compose down
-	@echo ">>> Run 'make all' again to restart everything."
+	@echo ">>> Use 'make all' to restart."
 
 # ------------------------------------------
-# FULL RESET (clean state)
+# FULL RESET
 # ------------------------------------------
 reset:
-	@echo ">>> Full reset..."
+	@echo ">>> FULL RESET"
 	docker compose down -v
-	rm -f $(CUR_PATH)/frontend.pid $(CUR_PATH)/backend.pid $(CUR_PATH)/frontend.log $(CUR_PATH)/backend.log
-	@echo ">>> Everything wiped. Use 'make all'."
+	rm -f backend.pid frontend.pid backend.log frontend.log
+	@echo ">>> Clean slate. Run 'make all'."

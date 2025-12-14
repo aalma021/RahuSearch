@@ -6,29 +6,32 @@ export default function ProductCard({ item }) {
   const images = image_paths || [];
   const [index, setIndex] = useState(0);
 
-  const next = () => setIndex(prev => (prev + 1) % images.length);
-  const prev = () => setIndex(prev => (prev - 1 + images.length) % images.length);
-  const goTo = i => setIndex(i);
+  const next = () => setIndex((prev) => (prev + 1) % images.length);
+  const prev = () => setIndex((prev) => (prev - 1 + images.length) % images.length);
+  const goTo = (i) => setIndex(i);
 
   return (
-    <div style={styles.outerBox} className="fade-in scale-hover">
-      <div style={styles.innerCard}>
+    <div style={styles.card} className="fade-in scale-hover">
+      {/* IMAGE SLIDER */}
+      <div style={styles.slider}>
+        {images.length > 0 ? (
+          <img src={images[index]} style={styles.image} alt="product" />
+        ) : (
+          <div style={styles.noImg}>No Image</div>
+        )}
 
-        {/* IMAGE SLIDER */}
-        <div style={styles.slider}>
-          {images.length > 0 ? (
-            <img src={images[index]} style={styles.image} alt="product" />
-          ) : (
-            <div style={styles.noImg}>No Image</div>
-          )}
+        {images.length > 1 && (
+          <>
+            <button style={{ ...styles.navBtn, left: "10px" }} onClick={prev}>
+              ❮
+            </button>
+            <button style={{ ...styles.navBtn, right: "10px" }} onClick={next}>
+              ❯
+            </button>
+          </>
+        )}
 
-          {images.length > 1 && (
-            <button style={{ ...styles.navBtn, left: "10px" }} onClick={prev}>❮</button>
-          )}
-          {images.length > 1 && (
-            <button style={{ ...styles.navBtn, right: "10px" }} onClick={next}>❯</button>
-          )}
-
+        {images.length > 1 && (
           <div style={styles.indicators}>
             {images.map((_, i) => (
               <span
@@ -38,49 +41,48 @@ export default function ProductCard({ item }) {
               />
             ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        {/* INFO */}
-        <div style={styles.info}>
+      {/* INFO */}
+      <div style={styles.info}>
+        <div>
           <h3 style={styles.brand}>{brand}</h3>
           <p style={styles.title}>{title_en}</p>
+        </div>
 
+        <div>
           <p style={styles.price}>
             {price ? `${price} ${currency || ""}` : "-"}
           </p>
 
-          <a href={url} target="_blank" rel="noopener noreferrer" style={styles.link}>
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={styles.link}
+          >
             View Product →
           </a>
         </div>
-
       </div>
     </div>
   );
 }
-
-
 const styles = {
-  /** OUTER DARK PANEL BOX */
-  outerBox: {
-    margin: "12px", // *** EKLENDİ ***
-    padding: "12px",
-    borderRadius: "24px",
-    width: "100%",
-    background: "linear-gradient(to bottom right, #0c090d, #272931)",
-    border: "1px solid rgba(255,255,255,0.12)",
-    boxShadow: "0 16px 42px rgba(0,0,0,0.32)",
-    transition: "0.3s ease",
-  },
-
-  /** INNER LIGHT CARD */
-  innerCard: {
-    width: "100%",
-    background: "#F4F5F7",
-    borderRadius: "18px",
+  card: {
+    margin: "12px",
     padding: "16px",
-    border: "1px solid rgba(0,0,0,0.1)",
-    boxShadow: "0 8px 18px rgba(0,0,0,0.12)",
+    width: "100%",
+    height: "460px",
+    borderRadius: "18px",
+    background: "#FFFFFF",
+    border: "1px solid rgba(0,0,0,0.08)",
+    boxShadow: "0 10px 28px rgba(0,0,0,0.14)",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
+    transition: "0.25s ease",
   },
 
   slider: {
@@ -89,24 +91,23 @@ const styles = {
     height: "200px",
     overflow: "hidden",
     borderRadius: "12px",
+    background: "#F0F1F3",
   },
 
   image: {
     width: "100%",
     height: "200px",
-    objectFit: "cover",
-    borderRadius: "12px",
+    objectFit: "contain",
   },
 
   noImg: {
     width: "100%",
     height: "200px",
-    background: "#444",
-    borderRadius: "12px",
+    background: "#E2E3E6",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
-    color: "white",
+    color: "#555",
   },
 
   navBtn: {
@@ -120,7 +121,6 @@ const styles = {
     fontSize: "18px",
     borderRadius: "50%",
     cursor: "pointer",
-    transition: "0.2s",
   },
 
   indicators: {
@@ -129,33 +129,41 @@ const styles = {
     left: "50%",
     transform: "translateX(-50%)",
     display: "flex",
-    gap: "26px",
+    gap: "12px",
   },
 
   dot: {
-    width: "9px",
-    height: "9px",
+    width: "8px",
+    height: "8px",
     borderRadius: "50%",
     background: "#fff",
     cursor: "pointer",
-    transition: "0.22s",
   },
 
   info: {
+    height: "200px",
     marginTop: "14px",
+    display: "flex",
+    flexDirection: "column",
+    justifyContent: "space-between",
   },
 
   brand: {
     fontWeight: "700",
-    fontSize: "17px",
+    fontSize: "16px",
     marginBottom: "4px",
     color: "#0D1117",
   },
 
   title: {
     fontSize: "14px",
-    opacity: 0.85,
     color: "#20232a",
+    lineHeight: "1.4",
+    opacity: 0.85,
+    display: "-webkit-box",
+    WebkitLineClamp: 2,
+    WebkitBoxOrient: "vertical",
+    overflow: "hidden",
   },
 
   price: {
@@ -173,4 +181,3 @@ const styles = {
     fontWeight: "bold",
   },
 };
-

@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-
 from app.api.routes.search_router import router as search_router
 from app.utils.logger import logger
 from app.config.settings import DATA_ROOT
@@ -32,7 +31,9 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-logger.info("[API] FastAPI application initialized")
+@app.on_event("startup")
+async def startup_event():
+    logger.info("[API] FastAPI startup event fired")
 
 # -----------------------------------------------------
 # 🔥 API Routers
