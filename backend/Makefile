@@ -104,31 +104,34 @@ frontend:
 	@echo ">>> Starting Frontend (Vite, Node 24)..."
 
 	@bash -c '\
-		cd ../frontend && \
+		set -e; \
+		cd ../frontend; \
 		if [ ! -f .nvmrc ]; then \
 			echo "❌ .nvmrc not found in frontend/"; exit 1; \
-		fi && \
+		fi; \
 		if [ ! -s $$HOME/.nvm/nvm.sh ]; then \
 			echo "❌ nvm not found. Install nvm first."; exit 1; \
-		fi && \
-		source $$HOME/.nvm/nvm.sh && \
-		nvm use && \
-		NODE_MAJOR=$$(node -v | sed "s/v//" | cut -d. -f1) && \
+		fi; \
+		source $$HOME/.nvm/nvm.sh; \
+		nvm use; \
+		NODE_MAJOR=$$(node -v | sed "s/v//" | cut -d. -f1); \
 		if [ $$NODE_MAJOR -lt 24 ]; then \
-			echo "❌ Unsupported Node version: $$(node -v). Required: >=24"; \
-			exit 1; \
-		fi && \
+			echo "❌ Unsupported Node version: $$(node -v). Required: >=24"; exit 1; \
+		fi; \
 		if [ ! -f package-lock.json ]; then \
 			echo "⚠️ package-lock.json not found → cleaning node_modules & npm cache"; \
-			rm -rf node_modules && \
+			rm -rf node_modules; \
 			npm cache clean --force; \
 		else \
 			echo "✔ package-lock.json found → preserving node_modules resolution"; \
-		fi && \
-		npm install && \
+		fi; \
+		echo ">>> Running npm install"; \
+		npm install; \
+		echo ">>> Starting Vite dev server"; \
 		nohup npm run dev > $(CUR_PATH)/frontend.log 2>&1 & \
-		echo $$! > $(CUR_PATH)/frontend.pid \
+		echo $$! > $(CUR_PATH)/frontend.pid; \
 	'
+
 
 	@echo ">>> Waiting for frontend to be ready..."
 	@sleep 4
