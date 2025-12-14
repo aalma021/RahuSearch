@@ -96,11 +96,12 @@ wait_backend:
 	echo ">>> ERROR: Backend did not become healthy"; \
 	echo ">>> Check backend.log"; exit 1; \
 	'
+	
 # ------------------------------------------
-# FRONTEND (NODE VERSION SAFE)
+# FRONTEND (NODE 24 + VITE + AUTO BROWSER)
 # ------------------------------------------
 frontend:
-	@echo ">>> Starting Frontend with Node version check..."
+	@echo ">>> Starting Frontend (Vite, Node 24)..."
 
 	@bash -c '\
 		cd ../frontend && \
@@ -113,16 +114,33 @@ frontend:
 		source $$HOME/.nvm/nvm.sh && \
 		nvm use && \
 		NODE_MAJOR=$$(node -v | sed "s/v//" | cut -d. -f1) && \
-		if [ $$NODE_MAJOR -ne 18 ]; then \
-			echo "❌ Unsupported Node version: $$(node -v). Required: 18.x"; \
+		if [ $$NODE_MAJOR -lt 24 ]; then \
+			echo "❌ Unsupported Node version: $$(node -v). Required: >=24"; \
 			exit 1; \
 		fi && \
 		npm install && \
-		nohup npm start > $(CUR_PATH)/frontend.log 2>&1 & \
+		nohup npm run dev > $(CUR_PATH)/frontend.log 2>&1 & \
 		echo $$! > $(CUR_PATH)/frontend.pid \
 	'
 
+	@echo ">>> Waiting for frontend to be ready..."
+	@sleep 4
+
+	@echo ">>> Opening browser at http://localhost:3000"
+	@bash -c '\
+		if command -v xdg-open >/dev/null; then \
+			xdg-open http://localhost:3000; \
+		elif command -v open >/dev/null; then \
+			open http://localhost:3000; \
+		elif command -v cmd.exe >/dev/null; then \
+			cmd.exe /c start http://localhost:3000; \
+		else \
+			echo "⚠️ Could not detect browser opener"; \
+		fi \
+	'
+
 	@echo ">>> Frontend started ✓"
+
 
 # ------------------------------------------
 # LOGS
