@@ -92,8 +92,14 @@ export default function SearchBar({
             onChange={(e) => onImageUpload(e.target.files[0])}
           />
         </label>
-
-        <button className="search-btn" onClick={onSearch}>Search</button>
+        <button
+          type="button"
+          className="search-btn"
+          onClick={onSearch}
+          onTouchStart={onSearch}
+        >
+          Search
+        </button>
       </div>
 
       {/* ADVANCED BUTTON - NEW STYLE */}

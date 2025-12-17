@@ -26,7 +26,7 @@ app.mount("/images", StaticFiles(directory=DATA_ROOT), name="images")
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )

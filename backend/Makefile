@@ -5,12 +5,12 @@
 ENV_NAME := $(shell grep "^name:" environment.yml | sed 's/name: //')
 CUR_PATH := $(CURDIR)
 
-.PHONY: all env up api wait_backend frontend logs stop reset stop_background_services
+.PHONY: all env up api wait_backend frontend logs stop reset stop_background_services wait_frontend
 
 # ------------------------------------------
 # DEFAULT FLOW
 # ------------------------------------------
-all: stop_background_services env up api wait_backend frontend
+all: stop_background_services env up api wait_backend frontend wait_frontend piggy
 
 # ------------------------------------------
 # KILL OLD SERVICES
@@ -75,10 +75,14 @@ up:
 # ------------------------------------------
 api:
 	@echo ">>> Starting Backend API..."
-	@nohup conda run -n $(ENV_NAME) python -u -m app.main \
-		> backend.log 2>&1 & \
-	echo $$! > backend.pid
+	@bash -c '\
+		source $$(conda info --base)/etc/profile.d/conda.sh && \
+		conda activate $(ENV_NAME) && \
+		nohup python -u -m app.main > backend.log 2>&1 & \
+		echo $$! > backend.pid \
+	'
 	@echo ">>> Backend process started"
+
 
 # ------------------------------------------
 # WAIT UNTIL BACKEND IS REALLY UP
@@ -127,30 +131,29 @@ frontend:
 		fi; \
 		echo ">>> Running npm install"; \
 		npm install; \
-		echo ">>> Starting Vite dev server"; \
+		echo ">>> Starting Vite dev server (background)"; \
 		nohup npm run dev > $(CUR_PATH)/frontend.log 2>&1 & \
 		echo $$! > $(CUR_PATH)/frontend.pid; \
 	'
 
+	@echo ">>> Frontend process started ✓ (background)"
 
-	@echo ">>> Waiting for frontend to be ready..."
-	@sleep 4
-
-	@echo ">>> Opening browser at http://localhost:3000"
+# ------------------------------------------
+# WAIT UNTIL FRONTEND IS REALLY UP
+# ------------------------------------------
+wait_frontend:
+	@echo ">>> Waiting for Frontend to be ready..."
 	@bash -c '\
-		if command -v xdg-open >/dev/null; then \
-			xdg-open http://localhost:3000; \
-		elif command -v open >/dev/null; then \
-			open http://localhost:3000; \
-		elif command -v cmd.exe >/dev/null; then \
-			cmd.exe /c start http://localhost:3000; \
-		else \
-			echo "⚠️ Could not detect browser opener"; \
-		fi \
+	for i in {1..60}; do \
+		if curl -s http://localhost:3000 >/dev/null; then \
+			echo ">>> Frontend is ready ✓"; exit 0; \
+		fi; \
+		echo "Waiting for Frontend... ($$i/60)"; \
+		sleep 2; \
+	done; \
+	echo ">>> ERROR: Frontend did not become ready"; \
+	echo ">>> Check frontend.log"; exit 1; \
 	'
-
-	@echo ">>> Frontend started ✓"
-
 
 # ------------------------------------------
 # LOGS
@@ -175,3 +178,12 @@ reset:
 	docker compose down -v
 	rm -f backend.pid frontend.pid backend.log frontend.log
 	@echo ">>> Clean slate. Run 'make all'."
+
+# ------------------------------------------
+# PINGGY (FRONTEND PUBLIC TUNNEL)
+# ------------------------------------------
+piggy:
+	@echo ">>> Starting Pinggy tunnel for FRONTEND (port 3000)..."
+	@echo ">>> Public URL will be printed below"
+	@echo ">>> Press CTRL+C to stop the tunnel"
+	@ssh -p 443 -R 80:localhost:3000 a.pinggy.io | tee piggy.log

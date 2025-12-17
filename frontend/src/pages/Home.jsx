@@ -25,22 +25,27 @@ export default function Home() {
   const pageSize = 12;
 
   const onSearch = async () => {
-    setLoading(true);
+    try {
+      setLoading(true);
 
-    const data = await searchApi({
-      text,
-      imageFile,
-      mode,
-      k,
-      alpha,
-      reranker,
-      rerankerScore,
-      store
-    });
+      const data = await searchApi({
+        text,
+        imageFile,
+        mode,
+        k,
+        alpha,
+        reranker,
+        rerankerScore,
+        store
+      });
 
-    setResults(data.results || []);
-    setLoading(false);
-    setPage(1);
+      setResults(data?.results || []);
+      setPage(1);
+    } catch (err) {
+      console.error("SEARCH FAILED:", err);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const filteredResults = results.filter((r) => {
@@ -65,17 +70,16 @@ export default function Home() {
 
   return (
     <div className="page-root">
-    <div className="hero-wrapper fade-in">
-      <div className="hero-card">
-        <h1 className="hero-title">بحث دلالي</h1>
+      <div className="hero-wrapper fade-in">
+        <div className="hero-card">
+          <h1 className="hero-title">بحث دلالي</h1>
 
-        <p className="hero-desc">
-          منصة بحث ذكية تعتمد على الذكاء الاصطناعي لتوفير نتائج أكثر دقة وسياقاً
-        </p>
+          <p className="hero-desc">
+            منصة بحث ذكية تعتمد على الذكاء الاصطناعي لتوفير نتائج أكثر دقة وسياقاً
+          </p>
 
-        <div className="hero-sub-divider" />
-      </div>
-
+          <div className="hero-sub-divider" />
+        </div>
       </div>
 
       <SearchBar
@@ -105,7 +109,6 @@ export default function Home() {
 
       {shouldShowResults && (
         <div className="results-container fade-in">
-
           <div className="results-grid">
             {loading ? (
               <Loading />
@@ -115,14 +118,21 @@ export default function Home() {
               </div>
             ) : (
               paginatedResults.map((item) => (
-                <ProductCard key={item.id} item={item} />
+                <ProductCard
+                  key={`${item.store}-${item.id}-${item.url}`}
+                  item={item}
+                />
               ))
             )}
           </div>
 
           {!loading && filteredResults.length > 0 && (
             <div className="pagination">
-              <button className="pg-btn" disabled={page === 1} onClick={() => setPage(page - 1)}>
+              <button
+                className="pg-btn"
+                disabled={page === 1}
+                onClick={() => setPage(page - 1)}
+              >
                 Prev
               </button>
 
@@ -130,7 +140,11 @@ export default function Home() {
                 Page {page} / {totalPages}
               </span>
 
-              <button className="pg-btn" disabled={page === totalPages} onClick={() => setPage(page + 1)}>
+              <button
+                className="pg-btn"
+                disabled={page === totalPages}
+                onClick={() => setPage(page + 1)}
+              >
                 Next
               </button>
             </div>
