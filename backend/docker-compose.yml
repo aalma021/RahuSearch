@@ -17,12 +17,6 @@ services:
     volumes:
       - global-os-data:/usr/share/opensearch/data
     deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              count: all
-              capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
       interval: 5s

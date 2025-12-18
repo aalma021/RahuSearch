@@ -3,22 +3,31 @@ import react from "@vitejs/plugin-react";
 
 export default defineConfig({
   plugins: [react()],
+
+  // DEV
   server: {
+    host: true,
     port: 3000,
+    allowedHosts: true,
 
-    // 🔥 BUNU AÇMADAN allowedHosts ÇALIŞMAZ
-    host: true, // veya "0.0.0.0"
-
-    // 🔥 Pinggy gibi dynamic hostlar için
-    allowedHosts: "all",
-
-    // 🔥 Backend proxy (dokunma)
     proxy: {
       "/search": {
         target: "https://eayvp-212-253-200-248.a.free.pinggy.link",
         changeOrigin: true,
-        secure: false
-      }
-    }
+        secure: false,
+      },
+    },
+  },
+
+  // 🔥 PREVIEW (PINGGY FIX)
+  preview: {
+    host: true,
+    port: 4173,
+    allowedHosts: [
+      "localhost",
+      "127.0.0.1",
+      "jtxsk-212-253-200-248.a.free.pinggy.link",
+      ".free.pinggy.link" // 🔥 wildcard (çok önemli)
+    ]
   }
 });
