@@ -95,8 +95,10 @@ export default function SearchBar({
         <button
           type="button"
           className="search-btn"
-          onClick={onSearch}
-          onTouchStart={onSearch}
+          onClick={() => {
+            console.log("🔥 SEARCH BUTTON CLICKED");
+            onSearch();
+          }}
         >
           Search
         </button>

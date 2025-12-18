@@ -25,7 +25,10 @@ export const searchApi = async ({
   if (store) formData.append("store", store);
 
   const res = await axios.post(API_URL, formData, {
-    headers: { "Content-Type": "multipart/form-data" }
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-Pinggy-No-Screen": "true"
+    }
   });
 
   return res.data;

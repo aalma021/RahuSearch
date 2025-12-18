@@ -1,11 +1,32 @@
+# app/api/routes/search_router.py
 from typing import Optional
-from fastapi import APIRouter, UploadFile, File, Form
+
+from fastapi import APIRouter, UploadFile, File, Form, Response
 from app.pipeline.search_pipeline import SearchPipeline
 
+# -----------------------------------------------------
+# ROUTER
+# -----------------------------------------------------
 router = APIRouter()
 pipeline = SearchPipeline()
 
+# -----------------------------------------------------
+# CORS PREFLIGHT (CRITICAL)
+# -----------------------------------------------------
+@router.options("/search")
+async def search_options(response: Response):
+    """
+    Explicit OPTIONS handler for CORS preflight.
+    Required for multipart/form-data + proxy (Pinggy).
+    """
+    response.headers["Access-Control-Allow-Origin"] = "*"
+    response.headers["Access-Control-Allow-Methods"] = "POST, OPTIONS"
+    response.headers["Access-Control-Allow-Headers"] = "*"
+    return {}
 
+# -----------------------------------------------------
+# SEARCH ENDPOINT
+# -----------------------------------------------------
 @router.post("/search")
 async def search(
     text: Optional[str] = Form(None),
@@ -17,7 +38,7 @@ async def search(
     reranker: bool = Form(True),
     reranker_score: float = Form(0.0),
 
-    store: Optional[str] = Form(None),  # <<< EKLENDİ
+    store: Optional[str] = Form(None),
 ):
     """
     Semantic Search API
@@ -40,6 +61,7 @@ async def search(
     store : str
         Store filtering ("jarir", "noon", "almanea")
     """
+
     img_bytes = await image.read() if image else None
 
     return pipeline.run(
@@ -50,5 +72,5 @@ async def search(
         alpha=alpha,
         reranker=reranker,
         reranker_threshold=reranker_score,
-        store=store
+        store=store,
     )
