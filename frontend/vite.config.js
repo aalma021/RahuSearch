@@ -12,7 +12,7 @@ export default defineConfig({
 
     proxy: {
       "/search": {
-        target: "https://eayvp-212-253-200-248.a.free.pinggy.link",
+        target: "https://axlyh-212-253-200-248.a.free.pinggy.link",
         changeOrigin: true,
         secure: false,
       },
