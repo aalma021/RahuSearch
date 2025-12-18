@@ -85,16 +85,34 @@ backend_deploy: clean backend backend_wait
 	@echo "=============================================="
 	@echo ""
 	@ssh -p 443 -R 80:localhost:8000 a.pinggy.io | tee piggy-backend.log
-
+	
 # ------------------------------------------
 # FRONTEND BUILD + PREVIEW (PROD-LIKE)
 # ------------------------------------------
 frontend:
 	@echo ">>> Building Frontend..."
+
 	@bash -c '\
 		cd ../frontend && \
-		source $$HOME/.nvm/nvm.sh && \
-		nvm use && \
+		\
+		# --- NVM CHECK & INSTALL --- \
+		if [ ! -s "$$HOME/.nvm/nvm.sh" ]; then \
+			echo "⚠️  nvm not found. Installing nvm..."; \
+			curl -fsSL https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash; \
+		fi && \
+		\
+		# --- LOAD NVM --- \
+		export NVM_DIR="$$HOME/.nvm" && \
+		[ -s "$$NVM_DIR/nvm.sh" ] && . "$$NVM_DIR/nvm.sh" && \
+		\
+		# --- NODE VERSION --- \
+		if [ -f .nvmrc ]; then \
+			nvm install && nvm use; \
+		else \
+			echo "⚠️  .nvmrc not found, using default node"; \
+		fi && \
+		\
+		# --- BUILD --- \
 		npm install && \
 		npm run build \
 	'
@@ -107,6 +125,7 @@ frontend:
 	'
 
 	@echo "✔ Frontend preview started (background)"
+
 
 # ------------------------------------------
 # FRONTEND HEALTH CHECK
