@@ -43,6 +43,10 @@ app.include_router(search_router)
 async def startup_event():
     logger.info("[API] FastAPI startup event fired")
 
+@app.get("/health")
+def health():
+    return {"status": "ok"}
+
 # -----------------------------------------------------
 # ENTRYPOINT
 # -----------------------------------------------------

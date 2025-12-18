@@ -80,11 +80,15 @@ backend_deploy: clean backend backend_wait
 	@echo ""
 	@echo "=============================================="
 	@echo "🚀 BACKEND IS READY"
-	@echo "👉 Opening PUBLIC tunnel via Pinggy"
-	@echo "👉 COPY the URL below and put it into frontend config"
+	@echo "🌍 Opening PUBLIC tunnel via Pinggy (background)"
+	@echo "👉 Public URL will appear in:"
+	@echo "👉 tail -f piggy-backend.log"
 	@echo "=============================================="
 	@echo ""
-	@ssh -p 443 -R 80:localhost:8000 a.pinggy.io | tee piggy-backend.log
+
+	@nohup ssh -p 443 -R 80:localhost:8000 a.pinggy.io \
+		> piggy-backend.log 2>&1 & \
+	echo $$! > piggy-backend.pid
 	
 # ------------------------------------------
 # FRONTEND BUILD + PREVIEW (PROD-LIKE)
@@ -94,6 +98,8 @@ frontend:
 
 	@bash -c '\
 		cd ../frontend && \
+		\
+		rm -rf node_modules package-lock.json && \
 		\
 		# --- NVM CHECK & INSTALL --- \
 		if [ ! -s "$$HOME/.nvm/nvm.sh" ]; then \
