@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { API_BASE } from "../config";
 
 export default function ProductCard({ item }) {
   const { title_en, brand, price, currency, url, image_paths } = item;
@@ -19,7 +20,11 @@ export default function ProductCard({ item }) {
       {/* IMAGE SLIDER */}
       <div style={styles.slider}>
         {images.length > 0 ? (
-          <img src={images[index]} style={styles.image} alt="product" />
+        <img
+          src={`${API_BASE}${images[index]}`}
+          style={styles.image}
+          alt="product"
+        />
         ) : (
           <div style={styles.noImg}>No Image</div>
         )}
