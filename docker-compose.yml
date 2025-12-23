@@ -9,14 +9,13 @@ services:
       - cluster.name=semantic-cluster
       - node.name=backend-node
       - plugins.security.disabled=true
+      # (security disabled olsa da bazı image'lar bu değişkeni istiyor, zararı yok)
       - OPENSEARCH_INITIAL_ADMIN_PASSWORD=MyStrongPassword123!
       - OPENSEARCH_JAVA_OPTS=-Xms1g -Xmx1g
-      - CUDA_VISIBLE_DEVICES=0
     ports:
       - "9200:9200"
     volumes:
       - global-os-data:/usr/share/opensearch/data
-    deploy:
     healthcheck:
       test: ["CMD-SHELL", "curl -s http://localhost:9200 >/dev/null || exit 1"]
       interval: 5s
@@ -24,14 +23,36 @@ services:
       retries: 30
 
   api:
-    build: .
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
     container_name: semantic-api
+    env_file: .env
     ports:
       - "8000:8000"
+    volumes:
+      - /mnt/c/Users/AkifC/OneDrive/Masaüstü/upwork/milestone3/datas:/mnt/c/Users/AkifC/OneDrive/Masaüstü/upwork/milestone3/datas
+    depends_on:
+      opensearch:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+    container_name: semantic-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+  
+  predeploy:
+    image: rahusearch-predeploy
     env_file: .env
     depends_on:
       opensearch:
         condition: service_healthy
+    restart: "no"
 
 volumes:
   global-os-data:

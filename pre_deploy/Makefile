@@ -1,66 +1,50 @@
 # ------------------------------------------
-# PREDEPLOY MAKEFILE (using shared OpenSearch)
+# PREDEPLOY MAKEFILE (DOCKER-BASED)
 # ------------------------------------------
 
-ENV_NAME := $(shell grep "^name:" environment.yml | sed 's/name: //')
-COMPOSE_FILE := ../backend/docker-compose.yml
+PROJECT := rahusearch
+COMPOSE := ../docker-compose.yml
+PREDEPLOY_IMAGE := rahusearch-predeploy
 
-.PHONY: all env up seed reset logs stop
+.PHONY: all up build seed stop reset logs
 
-# -------------------- MAIN TARGET --------------------
-# make all => env + up + seed + stop
-all: env up seed stop
+# Full flow
+all: up build seed stop
 
-# -------------------- Conda --------------------
-env:
-	@echo ">>> Checking Conda environment: $(ENV_NAME)"
-	@if conda env list | grep -q "^$(ENV_NAME) "; then \
-		echo ">>> Environment exists."; \
-	else \
-		echo ">>> Environment does not exist. Creating..."; \
-		conda env create -f environment.yml; \
-	fi
-
-# -------------------- OpenSearch Up --------------------
+# Start OpenSearch (shared)
 up:
-	@echo ">>> Starting global OpenSearch..."
-	docker compose -f $(COMPOSE_FILE) up -d opensearch
-	@echo ">>> Waiting for OpenSearch to be ready..."
-
+	@echo "🚀 Starting shared OpenSearch..."
+	docker compose -p $(PROJECT) -f $(COMPOSE) up -d opensearch
+	@echo "⏳ Waiting for OpenSearch..."
 	@bash -c '\
 	for i in {1..300}; do \
 		if curl -s http://localhost:9200 >/dev/null; then \
-			echo ">>> OpenSearch is ready!"; \
-			exit 0; \
+			echo "✅ OpenSearch ready"; exit 0; \
 		fi; \
-		echo ">>> Waiting for OpenSearch... ($$i/300)"; \
 		sleep 2; \
 	done; \
-	echo ">>> ERROR: OpenSearch did not become ready in time"; \
-	exit 1;'
+	echo "❌ OpenSearch not ready"; exit 1;'
 
+# Build predeploy image
+build:
+	docker build -t $(PREDEPLOY_IMAGE) -f Dockerfile ..
 
-# -------------------- Run Predeploy Loader --------------------
-# -------------------- Run Predeploy Loader --------------------
+# Run predeploy loader
 seed:
-	@echo ">>> Activating Conda environment: $(ENV_NAME)"
-	@bash -c "source $$(conda info --base)/etc/profile.d/conda.sh && \
-		conda activate $(ENV_NAME) && \
-		echo '>>> Running Predeploy Loader (embedding + bulk upload)' && \
-		python -m opensearch_client && \
-		echo '>>> Seed completed.' && \
-		conda deactivate"
+	@echo "📦 Running predeploy (embedding + bulk upload)..."
+	docker run --rm \
+	  --network host \
+	  --env-file ../.env \
+	  $(PREDEPLOY_IMAGE)
 
-# -------------------- Logs --------------------
+# Logs (OpenSearch)
 logs:
-	docker compose -f $(COMPOSE_FILE) logs -f opensearch
+	docker compose -p $(PROJECT) -f $(COMPOSE) logs -f opensearch
 
-# -------------------- Stop --------------------
+# Stop services (data preserved)
 stop:
-	@echo ">>> Stopping OpenSearch (data preserved)..."
-	docker compose -f $(COMPOSE_FILE) down
+	docker compose -p $(PROJECT) -f $(COMPOSE) down
 
-# -------------------- Reset --------------------
+# Full reset (DANGER)
 reset:
-	@echo ">>> Full Reset: Containers + Volume deleted!"
-	docker compose -f $(COMPOSE_FILE) down -v
+	docker compose -p $(PROJECT) -f $(COMPOSE) down -v
