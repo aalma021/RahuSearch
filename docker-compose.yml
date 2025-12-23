@@ -31,26 +31,26 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - /mnt/c/Users/AkifC/OneDrive/Masaüstü/upwork/milestone3/datas:/mnt/c/Users/AkifC/OneDrive/Masaüstü/upwork/milestone3/datas
+      - ${DATA_ROOT}:${DATA_ROOT}
     depends_on:
       opensearch:
         condition: service_healthy
 
   frontend:
     build:
-      context: .
-      dockerfile: frontend/Dockerfile
+      context: ./frontend
+      dockerfile: Dockerfile
     container_name: semantic-frontend
     ports:
       - "3000:80"
     depends_on:
       - api
-  
+
   predeploy:
     image: rahusearch-predeploy
     env_file: .env
     volumes:
-      - /mnt/c/Users/Lenovo LOQ/Desktop/datas:/mnt/c/Users/Lenovo LOQ/Desktop/datas
+      - ${DATA_ROOT}:${DATA_ROOT}
       - hf-cache:/root/.cache/huggingface
     depends_on:
       opensearch:
