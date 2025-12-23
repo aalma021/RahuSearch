@@ -49,10 +49,18 @@ services:
   predeploy:
     image: rahusearch-predeploy
     env_file: .env
+    volumes:
+      - /mnt/c/Users/Lenovo LOQ/Desktop/datas:/mnt/c/Users/Lenovo LOQ/Desktop/datas
+      - hf-cache:/root/.cache/huggingface
     depends_on:
       opensearch:
         condition: service_healthy
     restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 6g
 
 volumes:
   global-os-data:
+  hf-cache:

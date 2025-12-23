@@ -3,7 +3,7 @@ COMPOSE := docker-compose.yml
 PINGGY_PORT := 3000
 API_HEALTH_URL := http://localhost:8000/health
 
-.PHONY: up all stop restart predeploy
+.PHONY: up all stop restart predeploy predeploy-build
 
 
 # -------------------------
@@ -40,7 +40,11 @@ all:
 up:
 	docker compose -p $(PROJECT) -f $(COMPOSE) up -d --build
 
-predeploy:
+predeploy-build:
+	@echo "🛠️ Building predeploy image..."
+	docker build -t rahusearch-predeploy -f pre_deploy/Dockerfile .
+
+predeploy: predeploy-build
 	@echo "📦 Running predeploy (index + embeddings, one-shot)..."
 	docker compose -p $(PROJECT) -f $(COMPOSE) up -d opensearch
 	docker compose -p $(PROJECT) -f $(COMPOSE) run --rm predeploy

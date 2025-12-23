@@ -43,7 +43,7 @@ def log_error(x): print(f"{RED}[ERROR] {x}{RESET}")
 # ---------------------------------------------------
 # CONFIG
 # ---------------------------------------------------
-DATA_ROOT = Path(os.getenv("DATA_ROOT"))
+DATA_ROOT = Path(os.getenv("DATA_ROOT").strip('"').strip("'"))
 OPENSEARCH_URL = os.getenv("OPENSEARCH_URL", "http://localhost:9200")
 OPENSEARCH_INDEX = os.getenv("OPENSEARCH_INDEX")
 

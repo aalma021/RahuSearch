@@ -39,8 +39,6 @@ node_modules/
 # build outputs
 build/
 dist/
-frontend/package-lock.json
-package-lock.json
 
 # logs
 *.log
