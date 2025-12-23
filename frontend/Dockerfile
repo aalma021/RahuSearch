@@ -1,23 +1,25 @@
-# ---------------------------------------------
-# FRONTEND DOCKERFILE (VITE + REACT)
-# ---------------------------------------------
-
-# -------- BUILD STAGE --------
-FROM node:20-alpine AS build
+# ===============================
+# FRONTEND BUILD STAGE
+# ===============================
+FROM node:20-bullseye-slim AS build
 
 WORKDIR /app
 
-COPY frontend/package.json frontend/package-lock.json ./
+# sadece dependency bilgileri
+COPY package.json package-lock.json ./
 RUN npm ci
 
-COPY frontend .
+# kaynak kod
+COPY . .
 RUN npm run build
 
-# -------- RUN STAGE --------
+# ===============================
+# FRONTEND RUNTIME
+# ===============================
 FROM nginx:alpine
 
 RUN rm /etc/nginx/conf.d/default.conf
-COPY frontend/nginx.conf /etc/nginx/conf.d/default.conf
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 
 COPY --from=build /app/dist /usr/share/nginx/html
 
