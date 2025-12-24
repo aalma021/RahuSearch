@@ -11,28 +11,35 @@ API_HEALTH_URL := http://localhost:8000/health
 # stop -> up -> wait api -> pinggy
 # -------------------------
 all:
-	@echo "🧹 Stopping existing containers (safe reset)..."
+	@echo "🧹 Stopping existing containers..."
 	docker compose -p $(PROJECT) -f $(COMPOSE) down
 
-	@echo "🚀 Starting Docker services..."
-	docker compose -p $(PROJECT) -f $(COMPOSE) up -d --build
+	@echo "🚀 Starting runtime services..."
+	docker compose -p $(PROJECT) -f $(COMPOSE) up -d --build opensearch api frontend
 
-	@echo "⏳ Waiting for API to be ready..."
+	@echo "⏳ Waiting for OpenSearch..."
 	@bash -c '\
 	for i in {1..120}; do \
-		if curl -s -o /dev/null -w "%{http_code}" $(API_HEALTH_URL) | grep -q 200; then \
-			echo "✅ API is ready (200 OK)"; exit 0; \
+		if curl -s http://localhost:9200 >/dev/null; then \
+			echo "✅ OpenSearch ready"; exit 0; \
 		fi; \
 		sleep 2; \
 	done; \
-	echo "❌ API did not become ready in time"; exit 1;'
+	echo "❌ OpenSearch timeout"; exit 1;'
 
-	@echo ""
-	@echo "🌍 Opening Pinggy tunnel for FRONTEND..."
-	@echo "👉 Share the HTTPS link below with the client"
-	@echo "------------------------------------------------"
-	ssh -o ServerAliveInterval=30 -o ServerAliveCountMax=5 \
-	    -p 443 -R 80:localhost:$(PINGGY_PORT) a.pinggy.io
+	@echo "⏳ Waiting for API..."
+	@bash -c '\
+	for i in {1..120}; do \
+		if curl -s -o /dev/null -w "%{http_code}" $(API_HEALTH_URL) | grep -q 200; then \
+			echo "✅ API ready"; exit 0; \
+		fi; \
+		sleep 2; \
+	done; \
+	echo "❌ API timeout"; exit 1;'
+
+	@echo "🌍 Opening Pinggy tunnel..."
+	ssh -p 443 -R 80:localhost:$(PINGGY_PORT) a.pinggy.io
+
 
 # -------------------------
 # FAST DEV FLOW (no down)
