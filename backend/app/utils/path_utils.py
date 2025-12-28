@@ -16,21 +16,24 @@ def _build_store_cache():
 
     _STORE_PATH_CACHE.clear()
 
-    for data_dir in os.listdir(DATA_ROOT):
-        data_dir_path = os.path.join(DATA_ROOT, data_dir)
-        if not os.path.isdir(data_dir_path):
+    for entry in os.listdir(DATA_ROOT):
+        entry_path = os.path.join(DATA_ROOT, entry)
+
+        # CASE 1: datas/jarir
+        if os.path.isdir(entry_path):
+            _STORE_PATH_CACHE[entry.lower()] = entry
             continue
 
-        for store in os.listdir(data_dir_path):
-            store_path = os.path.join(data_dir_path, store)
-            if not os.path.isdir(store_path):
-                continue
-
-            _STORE_PATH_CACHE[store.lower()] = os.path.relpath(
-                store_path, DATA_ROOT
-            )
+        # CASE 2: datas/data_1/jarir
+        for store in os.listdir(entry_path):
+            store_path = os.path.join(entry_path, store)
+            if os.path.isdir(store_path):
+                _STORE_PATH_CACHE[store.lower()] = os.path.relpath(
+                    store_path, DATA_ROOT
+                )
 
     _CACHE_INITIALIZED = True
+
 
 
 def build_full_image_paths(store: str, image_paths: list[str]):
