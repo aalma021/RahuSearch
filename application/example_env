@@ -1,0 +1,70 @@
+# =====================================================
+# 1: COMMON (used by all services)
+# =====================================================
+
+# JSONL data root (used by predeploy & add_data)
+DATA_ROOT=/root/upwork/RahuSearch/data_crawling/codes/nahdi/data/nahdi
+
+# Weaviate connection
+WEAVIATE_URL=http://weaviate:8080
+WEAVIATE_CLASS=Product
+
+
+# =====================================================
+# 2: ADD_DATA / UPDATE PIPELINE
+# =====================================================
+
+# Fields used to build embedding text (which columns you want to embed)
+EMBED_FIELDS=brand,title_en,title_ar,text_search_en,text_search_ar,image_text
+
+# Update behavior (false + false = only new data will be added when make_add is run)
+UPDATE_MODE=false
+SKIP_EXISTING=false
+
+
+# =====================================================
+# 3: BACKEND / SEARCH
+# =====================================================
+
+# Reranker
+RERANKER_MODEL=BAAI/bge-reranker-v2-m3
+RERANK_CANDIDATE_LIMIT=48
+
+
+# =====================================================
+# 4: IMAGE → TEXT / LLM (predeploy & backend)
+# =====================================================
+
+IMAGE_TO_TEXT_MODEL=gpt-4o-mini
+OPENROUTER_API_KEY=sk-***
+LLM_BASE_URL=https://openrouter.ai/api/v1
+
+
+# =====================================================
+# 5: EMBEDDING RUNTIME (infrastructure only)
+# =====================================================
+
+# local | external (local is vllm, external is provider like openai)
+EMBED_RUNTIME=external
+
+
+# =====================================================
+# 6: vLLM (used only when EMBED_RUNTIME=local)
+# =====================================================
+
+VLLM_MODEL=intfloat/multilingual-e5-base
+VLLM_PORT=8001
+VLLM_RUNNER=pooling
+VLLM_MAX_MODEL_LEN=512
+VLLM_GPU_MEMORY_UTILIZATION=0.2
+VLLM_SWAP_SPACE=0
+VLLM_DEVICE=cpu
+
+
+# =====================================================
+# 7: EMBEDDING CLIENT (backend, openai-compatible) (RUNTIME=external)
+# =====================================================
+
+EMBED_BASE_URL=https://api.openai.com/v1
+EMBED_API_KEY=sk-***
+EMBED_MODEL=text-embedding-3-small
