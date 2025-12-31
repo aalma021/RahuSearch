@@ -21,3 +21,4 @@ data_crawling/**/*.jsonl
 # OS
 .DS_Store
 *Zone.Identifier*
+.sd
