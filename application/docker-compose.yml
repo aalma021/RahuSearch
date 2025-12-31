@@ -1,0 +1,96 @@
+version: "3.8"
+
+services:
+  # -------------------------------------------------
+  # Weaviate (OpenSearch yerine)
+  # -------------------------------------------------
+  weaviate:
+    image: cr.weaviate.io/semitechnologies/weaviate:1.35.1
+    container_name: backend-weaviate
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    restart: on-failure:0
+    environment:
+      QUERY_DEFAULTS_LIMIT: 50
+      AUTHENTICATION_ANONYMOUS_ACCESS_ENABLED: "true"
+      PERSISTENCE_DATA_PATH: "/var/lib/weaviate"
+      ENABLE_MODULES: ""
+      DEFAULT_VECTORIZER_MODULE: "none"
+      CLUSTER_HOSTNAME: "node1"
+    volumes:
+      - weaviate-data:/var/lib/weaviate
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:8080/v1/meta >/dev/null || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 30
+
+  # -------------------------------------------------
+  # API (SADECE depends_on DEĞİŞTİ)
+  # -------------------------------------------------
+  api:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: semantic-api
+    env_file: .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - ${DATA_ROOT}:${DATA_ROOT}
+    depends_on:
+      - weaviate
+
+  # -------------------------------------------------
+  # FRONTEND (DEĞİŞMEDİ)
+  # -------------------------------------------------
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: semantic-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - api
+
+  # -------------------------------------------------
+  # PREDEPLOY (SADECE depends_on DEĞİŞTİ)
+  # -------------------------------------------------
+  predeploy:
+    image: rahusearch-predeploy
+    env_file: .env
+    volumes:
+      - ${DATA_ROOT}:${DATA_ROOT}
+      - hf-cache:/root/.cache/huggingface
+    depends_on:
+      - weaviate
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+
+  # -------------------------------------------------
+  # UPDATE (ADD / UPSERT DATA)
+  # -------------------------------------------------
+  update:
+    image: rahusearch-predeploy
+    container_name: rahusearch-update
+    env_file: .env
+    volumes:
+      - ${DATA_ROOT}:${DATA_ROOT}
+      - hf-cache:/root/.cache/huggingface
+    depends_on:
+      - weaviate
+    restart: "no"
+    command: ["python", "update.py"]
+    deploy:
+      resources:
+        limits:
+          memory: 6g
+
+volumes:
+  weaviate-data:
+  hf-cache:

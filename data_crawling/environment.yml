@@ -1,0 +1,14 @@
+name: bilingual-semantic-search
+channels:
+  - conda-forge
+dependencies:
+  - python=3.12
+  - pip
+  - pip:
+      - seleniumbase
+      - beautifulsoup4
+      - requests
+      - lxml
+      - openai
+      - tqdm
+      - python-dotenv

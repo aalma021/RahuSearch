@@ -1,0 +1,7 @@
+opensearch-py==2.4.2
+numpy
+pandas
+python-dotenv
+tqdm
+openai
+weaviate-client

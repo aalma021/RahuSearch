@@ -1,0 +1,23 @@
+# env / secrets
+.env
+*.env
+
+# python
+__pycache__/
+*.pyc
+
+# node
+node_modules/
+
+# data (IMAGES + JSONL)
+data_crawling/**/data/
+data_crawling/**/*.jsonl
+
+# logs / temp
+*.log
+*.tmp
+*.cache
+
+# OS
+.DS_Store
+*Zone.Identifier*
