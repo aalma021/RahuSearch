@@ -1,0 +1,18 @@
+# -------------------------------------------------
+# SITE
+# -------------------------------------------------
+SITE_NAME=extra
+SITE_URL=https://www.extra.com/en-sa/search/?q=laptopts%3Arelevance%3Atype%3APRODUCT&text=laptopts&pg=1&pageSize=24&sort=relevance
+
+# -------------------------------------------------
+# SCRAPING CONFIG
+# -------------------------------------------------
+GROUP=extra_laptops
+LIMIT=50
+MAX_IMAGES=5
+
+# -------------------------------------------------
+# SELENIUM
+# -------------------------------------------------
+HEADLESS=true
+LOCALE=en_US

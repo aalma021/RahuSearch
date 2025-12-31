@@ -12,7 +12,7 @@ import json
 import uuid as uuid_pkg
 from pathlib import Path
 from typing import Dict, Any, List
-
+import time, requests
 import numpy as np
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -63,6 +63,23 @@ if not DATA_ROOT.exists():
 
 log_info(f"UPDATE_MODE={UPDATE_MODE} | SKIP_EXISTING={SKIP_EXISTING}")
 log_info(f"Weaviate={WEAVIATE_URL} | Class={WEAVIATE_CLASS}")
+
+# ---------------------------------------------------
+# 🔥 HEALTH CHECK
+# ---------------------------------------------------
+def wait_for_weaviate(url: str, timeout: int = 60):
+    log_info("Waiting for Weaviate to be ready...")
+    start = time.time()
+    while time.time() - start < timeout:
+        try:
+            r = requests.get(f"{url}/v1/meta", timeout=2)
+            if r.status_code == 200:
+                log_info("Weaviate is ready")
+                return
+        except Exception:
+            pass
+        time.sleep(2)
+    raise RuntimeError("Weaviate not ready after timeout")
 
 # ---------------------------------------------------
 # EMBEDDING
@@ -160,6 +177,8 @@ def iter_raw_docs():
 def main():
     embedding = GatewayEmbedding()
     embedding.embed(["dim_probe"])
+    
+    wait_for_weaviate(WEAVIATE_URL)
 
     host = WEAVIATE_URL.replace("http://", "").split(":")[0]
     port = int(WEAVIATE_URL.split(":")[-1])
